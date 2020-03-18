@@ -9,6 +9,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -16,8 +17,10 @@ import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -28,9 +31,12 @@ import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
 import br.ce.wcaquino.exceptions.FilmeSemEstoque;
 import br.ce.wcaquino.exceptions.LocadoraExc;
+import br.ce.wcaquino.utils.DataUtils;
 
 public class LocacaoServiceTest {
 
+	private DataUtils data;
+	
 	private LocacaoService service;
 	
 	@Rule
@@ -47,6 +53,8 @@ public class LocacaoServiceTest {
 	
 	@Test
 	public void deveAlugarFilme() throws Exception {
+		Assume.assumeFalse(DataUtils.verificarDiaSemana(new Date(),Calendar.SATURDAY));
+
 		//cenario
 		Usuario usuario = new Usuario("Usuario 1");
 		List<Filme> filme = Arrays.asList(new Filme("Filme 1", 1, 5.0));
@@ -99,7 +107,31 @@ public class LocacaoServiceTest {
 		
 	}
 	
+	
 	@Test
+	public void naoDeveDevolverNoDomingo() throws FilmeSemEstoque, LocadoraExc {
+		Assume.assumeTrue(DataUtils.verificarDiaSemana(new Date(),Calendar.SATURDAY));
+		//cenario
+		Usuario usuario = new Usuario("Usuario 1");
+		List<Filme> filme = Arrays.asList(new Filme("Filme 1", 2, 4.0));
+		
+		//acao
+		Locacao resultado = service.alugarFilme(usuario, filme);
+		
+		//verificao
+		
+		boolean ehSegunda = DataUtils.verificarDiaSemana(resultado.getDataRetorno(), Calendar.MONDAY);
+		Assert.assertTrue(ehSegunda);	
+
+		
+	}
+	
+	
+}
+
+
+
+/*	@Test
 	public void promo3FilmesPaga75Pct() throws FilmeSemEstoque, LocadoraExc {
 		//cenario
 		Usuario usuario = new Usuario("Usuario 1");
@@ -153,32 +185,4 @@ public class LocacaoServiceTest {
 		
 		//verificacao
 		Assert.assertThat(resultado.getValor(), is(14.0));
-	}
-	
-	
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	}*/
